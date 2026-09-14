@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
-
-	"github.com/gin-gonic/gin"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"ecommerce-microservice/user-service/internal/handler"
 	framework "ecommerce-microservice/user-service/internal/infrastructure"
@@ -29,10 +33,45 @@ func main() {
 	// Handler
 	userHandler := handler.NewUserHandler(userUsecase)
 
-	// Gin
-	router := gin.Default()
+	// Infrastructure/Framework
+	router := framework.NewRouter(userHandler)
 
-	router.POST("/users", userHandler.CreateUser)
+	// ========== Graceful Shutdown ===========
+	// HTTP Server
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: router,
+	}
 
-	router.Run(":8080")
+	go func() {
+		log.Println("User service running on :8080")
+
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	// Wait for shutdown signal
+	stop := make(chan os.Signal, 1)
+
+	signal.Notify(
+		stop,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+
+	<-stop
+
+	log.Println("Shutdown signal received...")
+
+	// Give active requests some time to finish
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Gracefully shutdown HTTP server
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Server stopped")
 }
