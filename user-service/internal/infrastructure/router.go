@@ -14,6 +14,9 @@ func NewRouter(userHandler *handler.UserHandler) *gin.Engine {
 	{
 		v1.POST("", userHandler.CreateUserV1)
 		v1.GET("/:id", userHandler.GetUserByIDV1)
+		v1.PUT("/:id", userHandler.UpdateUserByIDV1)  // Update By PUT Whole User Data of a User
+		v1.PATCH("/:id", userHandler.PatchUserByIDV1) // Update By PATCH Partially update data of a User
+		v1.DELETE("/:id", userHandler.DeleteUserByIDV1)
 	}
 
 	// For New client Versioning
@@ -21,6 +24,8 @@ func NewRouter(userHandler *handler.UserHandler) *gin.Engine {
 	{
 		v2.POST("", userHandler.CreateUserV2)
 		v2.GET("/:id", userHandler.GetUserByIDV2)
+		v2.PUT("/:id", userHandler.UpdateUserByIDV2)  // Update By PUT Whole User Data of a User
+		v2.PATCH("/:id", userHandler.PatchUserByIDV2) // Update By PATCH Partially update data of a User
 	}
 
 	return router
