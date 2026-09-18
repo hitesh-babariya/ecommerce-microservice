@@ -29,8 +29,9 @@ func (h *UserHandler) CreateUserV1(c *gin.Context) {
 	var request model.CreateUserRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "VALIDATION_ERROR",
+			Message: "Invalid request data",
 		})
 		return
 	}
@@ -43,8 +44,11 @@ func (h *UserHandler) CreateUserV1(c *gin.Context) {
 
 	user, err := h.userUsecase.CreateUser(ctx, request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+		log.Println("Error:", err)
+
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Code:    "INTERNAL_SERVER_ERROR",
+			Message: "Internal server error",
 		})
 		return
 	}
@@ -64,8 +68,9 @@ func (h *UserHandler) GetUserByIDV1(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user id",
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "INVALID_USER_ID",
+			Message: "Invalid user id",
 		})
 		return
 	}
@@ -79,10 +84,15 @@ func (h *UserHandler) GetUserByIDV1(c *gin.Context) {
 
 	user, err := h.userUsecase.GetUserByID(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
-		})
-		return
+		// Expected business error
+		if errors.Is(err, model.ErrUserNotFound) {
+
+			c.JSON(http.StatusNotFound, model.ErrorResponse{
+				Code:    "USER_NOT_FOUND",
+				Message: "User not found",
+			})
+			return
+		}
 	}
 
 	response := model.UserResponse{
@@ -100,16 +110,18 @@ func (h *UserHandler) UpdateUserByIDV1(c *gin.Context) {
 	//id1, err := strconv.Atoi(id) // THis will convert into int not int64
 	id1, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid user id",
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "INVALID_USER_ID",
+			Message: "Invalid user id",
 		})
 		return
 	}
 
 	var req model.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Error": "Invalid Request",
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "VALIDATION_ERROR",
+			Message: "Invalid request data",
 		})
 		return
 	}
@@ -123,10 +135,15 @@ func (h *UserHandler) UpdateUserByIDV1(c *gin.Context) {
 
 	user, err := h.userUsecase.UpdateUserByID(ctx, req, id1)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
-		})
-		return
+		// Expected business error
+		if errors.Is(err, model.ErrUserNotFound) {
+
+			c.JSON(http.StatusNotFound, model.ErrorResponse{
+				Code:    "USER_NOT_FOUND",
+				Message: "User not found",
+			})
+			return
+		}
 	}
 
 	response := model.UserResponse{
@@ -145,16 +162,18 @@ func (h *UserHandler) PatchUserByIDV1(c *gin.Context) {
 
 	id1, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user id",
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "INVALID_USER_ID",
+			Message: "Invalid user id",
 		})
 		return
 	}
 
 	var req model.PatchUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Error": "Invalid Request",
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "VALIDATION_ERROR",
+			Message: "Invalid request data",
 		})
 		return
 	}
@@ -168,10 +187,15 @@ func (h *UserHandler) PatchUserByIDV1(c *gin.Context) {
 
 	user, err := h.userUsecase.PatchUserByID(ctx, req, id1)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
-		})
-		return
+		// Expected business error
+		if errors.Is(err, model.ErrUserNotFound) {
+
+			c.JSON(http.StatusNotFound, model.ErrorResponse{
+				Code:    "USER_NOT_FOUND",
+				Message: "User not found",
+			})
+			return
+		}
 	}
 
 	response := model.UserResponse{
@@ -190,8 +214,9 @@ func (h *UserHandler) DeleteUserByIDV1(c *gin.Context) {
 
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user id",
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "INVALID_USER_ID",
+			Message: "Invalid user id",
 		})
 		return
 	}
@@ -209,8 +234,9 @@ func (h *UserHandler) DeleteUserByIDV1(c *gin.Context) {
 		// Expected business error
 		if errors.Is(err, model.ErrUserNotFound) {
 
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "user not found",
+			c.JSON(http.StatusNotFound, model.ErrorResponse{
+				Code:    "USER_NOT_FOUND",
+				Message: "User not found",
 			})
 			return
 		}
@@ -218,8 +244,9 @@ func (h *UserHandler) DeleteUserByIDV1(c *gin.Context) {
 		// Any other unexpected error
 		log.Println("Error:", err) // Should log Actual Error
 
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Internal server error",
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Code:    "INTERNAL_SERVER_ERROR",
+			Message: "Internal server error",
 		})
 		return
 
@@ -239,8 +266,9 @@ func (h *UserHandler) CreateUserV2(c *gin.Context) {
 	var request model.CreateUserRequest
 
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "VALIDATION_ERROR",
+			Message: "Invalid request data",
 		})
 		return
 	}
@@ -293,10 +321,15 @@ func (h *UserHandler) GetUserByIDV2(c *gin.Context) {
 
 	user, err := h.userUsecase.GetUserByID(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
-		})
-		return
+		// Expected business error
+		if errors.Is(err, model.ErrUserNotFound) {
+
+			c.JSON(http.StatusNotFound, model.ErrorResponse{
+				Code:    "USER_NOT_FOUND",
+				Message: "User not found",
+			})
+			return
+		}
 	}
 
 	// response := model.UserResponse{
@@ -326,8 +359,9 @@ func (h *UserHandler) UpdateUserByIDV2(c *gin.Context) {
 
 	var req model.UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Error": "Invalid Request",
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "VALIDATION_ERROR",
+			Message: "Invalid request data",
 		})
 		return
 	}
@@ -341,10 +375,15 @@ func (h *UserHandler) UpdateUserByIDV2(c *gin.Context) {
 
 	user, err := h.userUsecase.UpdateUserByID(ctx, req, id1)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
-		})
-		return
+		// Expected business error
+		if errors.Is(err, model.ErrUserNotFound) {
+
+			c.JSON(http.StatusNotFound, model.ErrorResponse{
+				Code:    "USER_NOT_FOUND",
+				Message: "User not found",
+			})
+			return
+		}
 	}
 
 	response := model.UserResponse{
@@ -362,16 +401,18 @@ func (h *UserHandler) PatchUserByIDV2(c *gin.Context) {
 
 	id1, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid user id",
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "INVALID_USER_ID",
+			Message: "Invalid user id",
 		})
 		return
 	}
 
 	var req model.PatchUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Error": "Invalid Request",
+		c.JSON(http.StatusBadRequest, model.ErrorResponse{
+			Code:    "VALIDATION_ERROR",
+			Message: "Invalid request data",
 		})
 		return
 	}
@@ -385,10 +426,15 @@ func (h *UserHandler) PatchUserByIDV2(c *gin.Context) {
 
 	user, err := h.userUsecase.PatchUserByID(ctx, req, id1)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
-		})
-		return
+		// Expected business error
+		if errors.Is(err, model.ErrUserNotFound) {
+
+			c.JSON(http.StatusNotFound, model.ErrorResponse{
+				Code:    "USER_NOT_FOUND",
+				Message: "User not found",
+			})
+			return
+		}
 	}
 
 	response := model.UserResponse{
