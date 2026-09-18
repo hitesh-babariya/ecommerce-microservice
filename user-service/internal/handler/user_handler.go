@@ -2,6 +2,8 @@ package handler
 
 import (
 	"context"
+	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -203,17 +205,27 @@ func (h *UserHandler) DeleteUserByIDV1(c *gin.Context) {
 
 	err = h.userUsecase.DeleteUserByID(ctx, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "User not found",
+
+		// Expected business error
+		if errors.Is(err, model.ErrUserNotFound) {
+
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "user not found",
+			})
+			return
+		}
+
+		// Any other unexpected error
+		log.Println("Error:", err) // Should log Actual Error
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Internal server error",
 		})
 		return
+
 	}
 
-	type DeleteUser struct {
-		ID      int64
-		Message string
-	}
-	response := DeleteUser{
+	response := model.DeleteUserResponse{
 		ID:      id,
 		Message: "Deleted user successfully",
 	}

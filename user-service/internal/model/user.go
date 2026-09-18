@@ -31,3 +31,7 @@ type UserResponse struct {
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+type DeleteUserResponse struct {
+	ID      int64  `json:"id"`
+	Message string `json:"message"`
+}

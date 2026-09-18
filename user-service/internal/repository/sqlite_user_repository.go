@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"ecommerce-microservice/user-service/internal/model"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -134,16 +135,16 @@ func (r *SQLiteUserRepository) DeleteUserByID(
 
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
-		return errors.New("Failed to delete user")
+		return fmt.Errorf("delete user: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return errors.New("Failed to check deleted user")
+		return fmt.Errorf("check deleted user: %w", err)
 	}
 
 	if rowsAffected == 0 {
-		return errors.New("User not found")
+		return model.ErrUserNotFound
 	}
 
 	return nil
