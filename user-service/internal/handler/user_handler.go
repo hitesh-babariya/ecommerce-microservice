@@ -93,6 +93,14 @@ func (h *UserHandler) GetUserByIDV1(c *gin.Context) {
 			})
 			return
 		}
+
+		log.Println("Error:", err)
+
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Code:    "INTERNAL_SERVER_ERROR",
+			Message: "Internal server error",
+		})
+		return
 	}
 
 	response := model.UserResponse{
@@ -144,6 +152,14 @@ func (h *UserHandler) UpdateUserByIDV1(c *gin.Context) {
 			})
 			return
 		}
+
+		log.Println("Error:", err)
+
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Code:    "INTERNAL_SERVER_ERROR",
+			Message: "Internal server error",
+		})
+		return
 	}
 
 	response := model.UserResponse{
@@ -196,6 +212,14 @@ func (h *UserHandler) PatchUserByIDV1(c *gin.Context) {
 			})
 			return
 		}
+
+		log.Println("Error:", err)
+
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Code:    "INTERNAL_SERVER_ERROR",
+			Message: "Internal server error",
+		})
+		return
 	}
 
 	response := model.UserResponse{
@@ -330,6 +354,14 @@ func (h *UserHandler) GetUserByIDV2(c *gin.Context) {
 			})
 			return
 		}
+
+		log.Println("Error:", err)
+
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Code:    "INTERNAL_SERVER_ERROR",
+			Message: "Internal server error",
+		})
+		return
 	}
 
 	// response := model.UserResponse{
@@ -384,6 +416,14 @@ func (h *UserHandler) UpdateUserByIDV2(c *gin.Context) {
 			})
 			return
 		}
+
+		log.Println("Error:", err)
+
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Code:    "INTERNAL_SERVER_ERROR",
+			Message: "Internal server error",
+		})
+		return
 	}
 
 	response := model.UserResponse{
@@ -435,6 +475,14 @@ func (h *UserHandler) PatchUserByIDV2(c *gin.Context) {
 			})
 			return
 		}
+
+		log.Println("Error:", err)
+
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Code:    "INTERNAL_SERVER_ERROR",
+			Message: "Internal server error",
+		})
+		return
 	}
 
 	response := model.UserResponse{

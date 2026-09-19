@@ -1,7 +1,107 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"ecommerce-microservice/order-service/internal/handler"
+	framework "ecommerce-microservice/order-service/internal/infrastructure"
+	"ecommerce-microservice/order-service/internal/repository"
+	"ecommerce-microservice/order-service/internal/usecase"
+)
 
 func main() {
-	fmt.Println("Test")
+
+	// ==========================
+	// Infrastructure
+	// ==========================
+
+	db, err := framework.NewSQLite()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	// ==========================
+	// Repository
+	// ==========================
+
+	orderRepo := repository.NewSQLiteOrderRepository(db)
+
+	// ==========================
+	// Usecase
+	// ==========================
+
+	orderUsecase := usecase.NewOrderUsecase(orderRepo)
+
+	// ==========================
+	// Handler
+	// ==========================
+
+	orderHandler := handler.NewOrderHandler(orderUsecase)
+
+	// ==========================
+	// Router
+	// ==========================
+
+	router := framework.NewRouter(orderHandler)
+
+	// ==========================
+	// HTTP Server
+	// ==========================
+
+	server := &http.Server{
+		Addr:    ":8081",
+		Handler: router,
+	}
+
+	go func() {
+
+		log.Println("Order service running on :8081")
+
+		if err := server.ListenAndServe(); err != nil &&
+			err != http.ErrServerClosed {
+
+			log.Fatalf("server error: %v", err)
+		}
+
+	}()
+
+	// ==========================
+	// Graceful Shutdown
+	// ==========================
+
+	stop := make(chan os.Signal, 1)
+
+	signal.Notify(
+		stop,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+
+	<-stop
+
+	log.Println("Shutdown signal received...")
+
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		5*time.Second,
+	)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+
+		log.Printf(
+			"Server forced to shutdown: %v",
+			err,
+		)
+	}
+
+	log.Println("Order service stopped")
 }
