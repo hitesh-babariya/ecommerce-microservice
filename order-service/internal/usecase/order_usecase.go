@@ -8,12 +8,18 @@ import (
 )
 
 type OrderUsecase struct {
-	repo repository.OrderRepository
+	repo       repository.OrderRepository
+	userClient UserServiceClient
 }
 
-func NewOrderUsecase(repo repository.OrderRepository) *OrderUsecase {
+func NewOrderUsecase(
+	repo repository.OrderRepository,
+	userClient UserServiceClient,
+) *OrderUsecase {
+
 	return &OrderUsecase{
-		repo: repo,
+		repo:       repo,
+		userClient: userClient,
 	}
 }
 
@@ -22,6 +28,17 @@ func (u *OrderUsecase) CreateOrder(
 	req model.CreateOrderRequest,
 ) (model.Order, error) {
 
+	// 1. Verify that user exists
+	_, err := u.userClient.GetUserByID(
+		ctx,
+		req.UserID,
+	)
+
+	if err != nil {
+		return model.Order{}, err
+	}
+
+	// 2. User exists, create order
 	order := model.Order{
 		UserID:      req.UserID,
 		ProductID:   req.ProductID,

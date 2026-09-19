@@ -35,10 +35,18 @@ func main() {
 	orderRepo := repository.NewSQLiteOrderRepository(db)
 
 	// ==========================
+	// User Service HTTP Client
+	// ==========================
+
+	userClient := framework.NewHTTPUserServiceClient(
+		"http://localhost:8080",
+	)
+
+	// ==========================
 	// Usecase
 	// ==========================
 
-	orderUsecase := usecase.NewOrderUsecase(orderRepo)
+	orderUsecase := usecase.NewOrderUsecase(orderRepo, userClient)
 
 	// ==========================
 	// Handler

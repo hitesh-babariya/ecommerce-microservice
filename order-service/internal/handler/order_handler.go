@@ -52,6 +52,16 @@ func (h *OrderHandler) CreateOrderV1(c *gin.Context) {
 
 	if err != nil {
 
+		if errors.Is(err, model.ErrUserNotFound) {
+
+			c.JSON(http.StatusNotFound, model.ErrorResponse{
+				Code:    "USER_NOT_FOUND",
+				Message: "User not found",
+			})
+
+			return
+		}
+
 		log.Println("Error:", err)
 
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
