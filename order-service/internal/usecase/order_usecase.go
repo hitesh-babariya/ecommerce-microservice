@@ -83,3 +83,25 @@ func (u *OrderUsecase) DeleteOrderByID(
 
 	return u.repo.DeleteOrderByID(ctx, id)
 }
+func (u *OrderUsecase) UpdateOrderStatus(
+	ctx context.Context,
+	id int64,
+	status string,
+) (model.Order, error) {
+
+	switch status {
+
+	case model.OrderStatusPending,
+		model.OrderStatusPaid,
+		model.OrderStatusCancelled:
+
+	default:
+		return model.Order{}, model.ErrInvalidOrderStatus
+	}
+
+	return u.repo.UpdateStatus(
+		ctx,
+		id,
+		status,
+	)
+}

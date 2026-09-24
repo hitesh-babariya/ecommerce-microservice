@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"ecommerce-microservice/order-service/internal/handler"
+	"ecommerce-microservice/order-service/internal/infrastructure"
 	framework "ecommerce-microservice/order-service/internal/infrastructure"
+	"ecommerce-microservice/order-service/internal/model"
 	"ecommerce-microservice/order-service/internal/repository"
 	"ecommerce-microservice/order-service/internal/usecase"
 )
@@ -47,6 +49,32 @@ func main() {
 	// ==========================
 
 	orderUsecase := usecase.NewOrderUsecase(orderRepo, userClient)
+
+	// ==========================
+	// Payment Consumers
+	// ==========================
+
+	// paymentConsumer := infrastructure.NewPaymentConsumer()
+
+	paymentSuccessConsumer := infrastructure.NewPaymentConsumer(
+		"payment-success",
+		"order-service-success",
+		model.OrderStatusPaid,
+		orderUsecase,
+	)
+
+	paymentFailedConsumer := infrastructure.NewPaymentConsumer(
+		"payment-failed",
+		"order-service-failed",
+		model.OrderStatusCancelled,
+		orderUsecase,
+	)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go paymentConsumer.Start(ctx)
+	defer paymentConsumer.Close()
 
 	// ==========================
 	// Handler
@@ -97,7 +125,7 @@ func main() {
 
 	log.Println("Shutdown signal received...")
 
-	ctx, cancel := context.WithTimeout(
+	ctx, cancel = context.WithTimeout(
 		context.Background(),
 		5*time.Second,
 	)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 
 	"ecommerce-microservice/order-service/internal/model"
@@ -241,4 +242,45 @@ func (r *SQLiteOrderRepository) DeleteOrderByID(
 	}
 
 	return nil
+}
+
+func (r *SQLiteOrderRepository) UpdateStatus(
+	ctx context.Context,
+	id int64,
+	status string,
+) (model.Order, error) {
+
+	query := `
+		UPDATE orders
+		SET status = ?
+		WHERE id = ?
+	`
+
+	result, err := r.db.ExecContext(
+		ctx,
+		query,
+		status,
+		id,
+	)
+
+	if err != nil {
+		return model.Order{}, fmt.Errorf(
+			"update order status: %w",
+			err,
+		)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return model.Order{}, fmt.Errorf(
+			"check updated order: %w",
+			err,
+		)
+	}
+
+	if rowsAffected == 0 {
+		return model.Order{}, model.ErrOrderNotFound
+	}
+
+	return r.GetOrderByID(ctx, id)
 }

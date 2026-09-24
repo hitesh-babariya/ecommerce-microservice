@@ -33,4 +33,9 @@ type OrderRepository interface {
 		ctx context.Context,
 		id int64,
 	) error
+	UpdateStatus(
+		ctx context.Context,
+		id int64,
+		status string,
+	) (model.Order, error)
 }
