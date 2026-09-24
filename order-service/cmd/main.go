@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"ecommerce-microservice/order-service/internal/handler"
-	"ecommerce-microservice/order-service/internal/infrastructure"
 	framework "ecommerce-microservice/order-service/internal/infrastructure"
 	"ecommerce-microservice/order-service/internal/model"
 	"ecommerce-microservice/order-service/internal/repository"
@@ -54,16 +53,16 @@ func main() {
 	// Payment Consumers
 	// ==========================
 
-	// paymentConsumer := infrastructure.NewPaymentConsumer()
+	// paymentConsumer := framework.NewPaymentConsumer()
 
-	paymentSuccessConsumer := infrastructure.NewPaymentConsumer(
+	paymentSuccessConsumer := framework.NewPaymentConsumer(
 		"payment-success",
 		"order-service-success",
 		model.OrderStatusPaid,
 		orderUsecase,
 	)
 
-	paymentFailedConsumer := infrastructure.NewPaymentConsumer(
+	paymentFailedConsumer := framework.NewPaymentConsumer(
 		"payment-failed",
 		"order-service-failed",
 		model.OrderStatusCancelled,
@@ -73,8 +72,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go paymentConsumer.Start(ctx)
-	defer paymentConsumer.Close()
+	go paymentSuccessConsumer.Start(ctx)
+	defer paymentFailedConsumer.Close()
 
 	// ==========================
 	// Handler

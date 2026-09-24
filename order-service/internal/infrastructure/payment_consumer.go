@@ -20,11 +20,14 @@ type PaymentEvent struct {
 type PaymentConsumer struct {
 	reader       *kafka.Reader
 	orderUsecase *usecase.OrderUsecase
+	orderStatus  string
 }
 
 func NewPaymentConsumer(
 	topic string,
 	groupID string,
+	orderStatus string,
+	orderUsecase *usecase.OrderUsecase,
 ) *PaymentConsumer {
 
 	reader := kafka.NewReader(
@@ -38,7 +41,9 @@ func NewPaymentConsumer(
 	)
 
 	return &PaymentConsumer{
-		reader: reader,
+		reader:       reader,
+		orderUsecase: orderUsecase,
+		orderStatus:  orderStatus,
 	}
 }
 
