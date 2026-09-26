@@ -39,12 +39,12 @@ func main() {
 	// ========== Graceful Shutdown ===========
 	// HTTP Server
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":8081",
 		Handler: router,
 	}
 
 	go func() {
-		log.Println("User service running on :8080")
+		log.Println("User service running on :8081")
 
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server error: %v", err)
@@ -65,11 +65,11 @@ func main() {
 	log.Println("Shutdown signal received...")
 
 	// Give active requests some time to finish
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// Gracefully shutdown HTTP server
-	if err := server.Shutdown(ctx); err != nil {
+	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("Server forced to shutdown: %v", err)
 	}
 

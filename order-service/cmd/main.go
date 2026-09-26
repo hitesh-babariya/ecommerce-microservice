@@ -40,7 +40,7 @@ func main() {
 	// ==========================
 
 	userClient := framework.NewHTTPUserServiceClient(
-		"http://localhost:8080",
+		"http://localhost:8081",
 	)
 
 	// ==========================
@@ -92,13 +92,13 @@ func main() {
 	// ==========================
 
 	server := &http.Server{
-		Addr:    ":8081",
+		Addr:    ":8082",
 		Handler: router,
 	}
 
 	go func() {
 
-		log.Println("Order service running on :8081")
+		log.Println("Order service running on :8082")
 
 		if err := server.ListenAndServe(); err != nil &&
 			err != http.ErrServerClosed {
@@ -124,13 +124,13 @@ func main() {
 
 	log.Println("Shutdown signal received...")
 
-	ctx, cancel = context.WithTimeout(
+	shutdownCtx, cancel := context.WithTimeout(
 		context.Background(),
 		5*time.Second,
 	)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	if err := server.Shutdown(shutdownCtx); err != nil {
 
 		log.Printf(
 			"Server forced to shutdown: %v",
