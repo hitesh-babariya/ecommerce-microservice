@@ -31,8 +31,14 @@ func main() {
 	protected := router.Group("/api/v1")
 	//protected.Use(middleware.JWTAuth())  // Authorization with JWT
 
-	protected.Any("/users/*path", proxy.UserServiceProxy())   // For users
-	protected.Any("/orders/*path", proxy.OrderServiceProxy()) // For orders
+	// Users 
+	protected.Any("/users", proxy.UserServiceProxy())           // POST users
+	protected.Any("/users/*path", proxy.UserServiceProxy())   // GetBYID users
+	
+
+	// Orders 
+	protected.Any("/orders", proxy.OrderServiceProxy())  // POST orders
+	protected.Any("/orders/*path", proxy.OrderServiceProxy()) // GetBYID
 
 	// ==========================
 	// HTTP Server
@@ -90,7 +96,7 @@ func main() {
 }
 
 func login(c *gin.Context) {
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"message": "Login endpoint",
 	})
 }
